@@ -1,4 +1,4 @@
-package home.powiatle.district.dto.responses
+package home.powiatle.districts.dto.responses
 
 data class UserGuessResponse(
     val distance: String,

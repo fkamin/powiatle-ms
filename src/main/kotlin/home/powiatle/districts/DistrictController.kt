@@ -1,7 +1,7 @@
-package home.powiatle.district
+package home.powiatle.districts
 
-import home.powiatle.district.domain.DistrictFacade
-import home.powiatle.district.dto.responses.UserGuessResponse
+import home.powiatle.districts.domain.DistrictFacade
+import home.powiatle.districts.dto.responses.UserGuessResponse
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*

@@ -1,4 +1,4 @@
-package home.powiatle.district.domain
+package home.powiatle.districts.domain
 
 import com.fasterxml.jackson.annotation.JsonProperty
 

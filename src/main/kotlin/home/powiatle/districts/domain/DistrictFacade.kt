@@ -1,10 +1,10 @@
-package home.powiatle.district.domain
+package home.powiatle.districts.domain
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import home.powiatle.district.dto.exceptions.DistrictDoesNotExists
-import home.powiatle.district.dto.responses.UserGuessResponse
-import home.powiatle.numberGenerator.NumberGeneratorFacade
+import home.powiatle.districts.dto.exceptions.DistrictDoesNotExists
+import home.powiatle.districts.dto.responses.UserGuessResponse
+import home.powiatle.number.NumberFacade
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.ClassPathResource
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint
@@ -14,43 +14,47 @@ import java.nio.file.Paths
 import kotlin.math.*
 
 class DistrictFacade(
-    private val mongoDistrictRepository: MongoDistrictRepository,
+    private val districtRepository: DistrictRepository,
     private val objectMapper: ObjectMapper,
-    private val numberGeneratorFacade: NumberGeneratorFacade
+    private val numberFacade: NumberFacade
 ) {
 
     @Value("\${files.import.districts.path}")
     private val districtsImportFilePath: String = ""
 
     fun checkForDistricts() {
-        if (mongoDistrictRepository.count() == 0L) {
+        if (districtRepository.count() == 0L) {
             val resource = ClassPathResource(districtsImportFilePath)
             val districtsData: List<DistrictHelpData> =
                 objectMapper.readValue(resource.inputStream)
-            val districts: List<District> = districtsData.map {
-                District(it.id.toString(), it.name, GeoJsonPoint(it.centroid[1], it.centroid[0]))
+            val districts: List<District> = districtsData.map { district ->
+                District(
+                    district.id.toString(),
+                    district.name,
+                    GeoJsonPoint(district.centroid[1], district.centroid[0])
+                )
             }
 
-            mongoDistrictRepository.saveAll(districts)
+            districtRepository.saveAll(districts.toMutableList())
         }
     }
 
     fun getTodayDistrictImage(): ByteArray {
         val resource = ClassPathResource("images/")
         val imagePath: Path = Paths.get(resource.uri)
-        val number: Int = numberGeneratorFacade.getGeneratedNumberForToday()
+        val number: Int = numberFacade.getGeneratedNumberForToday()
 
         val newImagePath: Path = imagePath.resolve("$number.png")
         return Files.readAllBytes(newImagePath)
     }
 
     fun takeUserGuess(districtId: String): UserGuessResponse {
-        val todayNumber: String = numberGeneratorFacade.getGeneratedNumberForToday().toString()
+        val todayNumber: String = numberFacade.getGeneratedNumberForToday().toString()
         val todayDistrict: District =
-            mongoDistrictRepository.findById(todayNumber).orElseThrow { DistrictDoesNotExists() }
+            districtRepository.findById(todayNumber).orElseThrow { DistrictDoesNotExists() }
 
         val userGuessDistrict: District =
-            mongoDistrictRepository.findById(districtId).orElseThrow { DistrictDoesNotExists() }
+            districtRepository.findById(districtId).orElseThrow { DistrictDoesNotExists() }
 
         return getGuessResult(todayDistrict, userGuessDistrict)
     }
@@ -75,7 +79,6 @@ class DistrictFacade(
                     * cos(Math.toRadians(p2.y))
                     * cos(Math.toRadians(p2.x) - Math.toRadians(p1.x))
         ) * 6371
-
 
         return distance.roundToInt().toString()
     }
@@ -105,7 +108,7 @@ class DistrictFacade(
     }
 
     private fun calculatePercentage(todayLocation: GeoJsonPoint, userGuessLocation: GeoJsonPoint): String {
-        val maxDistanceDistrict: District = mongoDistrictRepository.findAll().maxBy { district ->
+        val maxDistanceDistrict: District = districtRepository.findAll().maxBy { district ->
             calculateDistance(todayLocation, district.location).toDouble()
         }
 
@@ -116,5 +119,4 @@ class DistrictFacade(
 
         return percentage.toInt().toString()
     }
-
 }

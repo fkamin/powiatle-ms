@@ -1,4 +1,4 @@
-package home.powiatle.district.domain
+package home.powiatle.districts.domain
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.bson.types.ObjectId
@@ -8,7 +8,7 @@ import org.springframework.data.mongodb.core.index.GeoSpatialIndexType
 import org.springframework.data.mongodb.core.index.GeoSpatialIndexed
 import org.springframework.data.mongodb.core.mapping.Document
 
-@Document(collection = "district")
+@Document(collection = "districts")
 data class District(
     @Id
     val id: String = ObjectId().toString(),

@@ -1,4 +1,4 @@
-package home.powiatle.district.dto.exceptions
+package home.powiatle.districts.dto.exceptions
 
 import org.springframework.http.HttpStatus
 
